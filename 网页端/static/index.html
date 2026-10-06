@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>U炼ai · 校园健身智能体</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="auth-screen" id="auth-screen">
+  <div class="panel auth-card">
+    <div class="brand auth-brand">
+      <div class="brand-mark">U</div>
+      <div class="brand-text">
+        <strong>U炼ai</strong>
+        <span>校园健身智能体</span>
+      </div>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab is-active" id="auth-tab-login" type="button">登录</button>
+      <button class="auth-tab" id="auth-tab-register" type="button">注册</button>
+    </div>
+    <form id="auth-form" autocomplete="off">
+      <label class="auth-field">
+        <span>用户名</span>
+        <input id="auth-username" type="text" placeholder="例如 xiaoming" autocomplete="username">
+      </label>
+      <label class="auth-field">
+        <span>密码</span>
+        <input id="auth-password" type="password" placeholder="至少 6 位" autocomplete="current-password">
+      </label>
+      <label class="auth-field" id="auth-confirm-field" hidden>
+        <span>确认密码</span>
+        <input id="auth-confirm" type="password" placeholder="再输入一遍" autocomplete="new-password">
+      </label>
+      <p class="auth-error" id="auth-error" hidden></p>
+      <button class="btn btn-primary auth-submit" id="auth-submit" type="submit">登录</button>
+    </form>
+    <p class="auth-note">测试管理员：<strong>admin / admin123</strong>，其余同学可自行注册。</p>
+  </div>
+</div>
+<div class="ambient" aria-hidden="true">
+  <span class="blob blob-a"></span>
+  <span class="blob blob-b"></span>
+  <span class="blob blob-c"></span>
+</div>
+<div class="shell" id="shell" hidden>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">U</div>
+      <div class="brand-text">
+        <strong>U炼ai</strong>
+        <span>校园健身智能体</span>
+      </div>
+    </div>
+
+    <nav class="nav" id="nav">
+      <button class="nav-item is-active" data-section="pose">
+        <span class="nav-icon">◎</span>
+        <span class="nav-label">动作自检</span>
+        <kbd>1</kbd>
+      </button>
+      <button class="nav-item" data-section="log">
+        <span class="nav-icon">▤</span>
+        <span class="nav-label">训练记录</span>
+        <kbd>2</kbd>
+      </button>
+      <button class="nav-item" data-section="eat">
+        <span class="nav-icon">◑</span>
+        <span class="nav-label">食堂营养</span>
+        <kbd>3</kbd>
+      </button>
+      <button class="nav-item" data-section="posture">
+        <span class="nav-icon">◭</span>
+        <span class="nav-label">体态评估</span>
+        <kbd>4</kbd>
+      </button>
+      <button class="nav-item" data-section="me">
+        <span class="nav-icon">◍</span>
+        <span class="nav-label">我的与计划</span>
+        <kbd>5</kbd>
+      </button>
+    </nav>
+
+    <div class="side-user" id="side-user" hidden>
+      <div class="side-user-meta">
+        <span class="side-user-name" id="side-user-name"></span>
+        <span class="chip chip-muted" id="side-user-role" hidden>管理员</span>
+      </div>
+      <button class="btn btn-ghost" id="logout-btn" type="button">退出</button>
+    </div>
+
+    <div class="sidebar-foot">
+      <div class="sys-row" id="side-health">
+        <span class="dot"></span>
+        <span>正在读取系统状态…</span>
+      </div>
+      <p class="hint">按 1 至 5 切换模块，按 / 搜索菜品</p>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ==================== 动作自检 ==================== -->
+    <section class="section is-active" id="section-pose">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">视觉理解 · 姿态分析</p>
+          <h1>动作自检</h1>
+          <p class="page-desc">支持深蹲、硬拉、卧推、俯卧撑、引体向上五个动作。上传一段训练视频，系统用姿态算法算出关节角度并给出可核查的判定，再由大模型翻译成训练建议。</p>
+        </div>
+        <div class="page-actions">
+          <span class="chip" id="pose-engine-chip">姿态引擎就绪</span>
+        </div>
+      </header>
+
+      <div class="grid grid-pose">
+        <div class="col">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>上传视频</h2>
+              <select id="pose-exercise" class="compact-select"></select>
+            </div>
+
+            <div class="custom-name-row" id="pose-custom-row" hidden>
+              <input type="text" id="pose-custom-name" class="text-input" maxlength="24" placeholder="输入动作名称，如：箭步蹲、臀桥、二头弯举">
+              <span class="chip chip-muted">大模型通用判定</span>
+            </div>
+
+            <div class="segment-row">
+              <div class="segment" id="pose-view">
+                <button type="button" class="seg-item is-active" data-view="side">侧面拍摄</button>
+                <button type="button" class="seg-item" data-view="front">正面拍摄</button>
+              </div>
+              <span class="chip chip-muted" id="pose-hint">选择动作后显示拍摄建议</span>
+            </div>
+
+            <label class="dropzone" id="pose-drop">
+              <input type="file" id="pose-file" accept="video/*">
+              <span class="drop-title">把视频拖到这里，或点击选择文件</span>
+              <span class="drop-sub">建议 20 秒以内、全身入镜、距离 2 至 3 米、光线从正面来</span>
+            </label>
+
+            <div class="file-row">
+              <span class="muted" id="pose-filename">尚未选择视频</span>
+              <button class="btn btn-primary" id="pose-start" disabled>开始分析</button>
+            </div>
+
+            <div class="progress" id="pose-progress" hidden>
+              <div class="progress-head">
+                <span id="pose-progress-text">正在上传…</span>
+                <span id="pose-progress-value">0%</span>
+              </div>
+              <div class="progress-bar"><i id="pose-progress-fill"></i></div>
+            </div>
+          </div>
+
+          <div class="panel" id="pose-result" hidden>
+            <div class="panel-head">
+              <h2>分析画面</h2>
+              <span class="chip" id="pose-status-pill">完成</span>
+            </div>
+            <video id="pose-video" class="video" controls playsinline></video>
+            <div class="timeline-track" id="pose-timeline" hidden></div>
+            <div class="row-actions">
+              <a class="btn btn-ghost" id="pose-card-link" target="_blank" rel="noopener">结论卡 PNG</a>
+            </div>
+            <p class="fineprint">结果由姿态识别自动生成，仅用于训练动作参考，不构成医疗或康复诊断。</p>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="panel" id="pose-advice-panel" hidden>
+            <div class="panel-head">
+              <h2>教练建议</h2>
+              <span class="chip chip-muted" id="advice-source">规则生成</span>
+            </div>
+            <p class="advice-text" id="pose-advice"></p>
+          </div>
+
+          <div class="callout posture-note" id="posture-note" hidden>
+            <strong>体态联动提示</strong>
+            <p id="posture-note-text"></p>
+            <p class="muted" id="posture-note-warmup"></p>
+          </div>
+
+          <div class="panel" id="pose-issues-panel" hidden>
+            <div class="panel-head"><h2>检出的问题</h2></div>
+            <div id="pose-issues" class="stack"></div>
+          </div>
+
+          <div class="panel" id="pose-per-rep-panel" hidden>
+            <div class="panel-head"><h2>逐次点评</h2></div>
+            <div id="pose-per-rep" class="stack"></div>
+          </div>
+
+          <div class="panel" id="pose-metrics-panel" hidden>
+            <div class="panel-head"><h2>数据详情</h2></div>
+            <details class="metrics-details">
+              <summary>查看角度数据（可展开）</summary>
+              <div class="stat-grid" id="pose-metrics"></div>
+            </details>
+          </div>
+
+          <div class="panel" id="pose-empty">
+            <div class="panel-head"><h2>拍摄要求</h2></div>
+            <ul class="rules" id="pose-rules"></ul>
+            <div class="callout">
+              <strong id="pose-callout-title">为什么要拍两段</strong>
+              <p id="pose-callout-body">侧面用来判断下蹲深度、躯干前倾与起身时序；正面用来判断膝内扣。用侧面视频是测不出膝内扣的。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 训练记录 ==================== -->
+    <section class="section" id="section-log">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">自然语言理解 · 长期记忆</p>
+          <h1>训练记录</h1>
+          <p class="page-desc">说一句"昨天深蹲 60 公斤 5 组 5 次"，大模型会解析出动作与日期，自动归到当天的日历里；点日历上的某天可以看到当天练了什么、总容量多少，还能让 AI 基于这些数据给出新的训练建议。</p>
+        </div>
+        <div class="page-actions">
+          <span class="chip chip-muted">数据保存在本机数据库</span>
+        </div>
+      </header>
+
+      <div class="grid grid-log">
+        <div class="col col-wide">
+          <div class="panel">
+            <div class="panel-head"><h2>记录一组训练</h2></div>
+            <textarea id="log-text" rows="3" placeholder="例如：昨天深蹲 60 公斤 5 组 5 次，最后一组有点吃力"></textarea>
+            <div class="row-actions">
+              <button class="btn btn-ghost" id="log-voice">语音输入</button>
+              <button class="btn btn-ghost" id="log-demo">填入示例</button>
+              <button class="btn btn-primary" id="log-parse">解析这句话</button>
+            </div>
+            <p class="fineprint" id="log-parse-hint">解析后会给出动作、重量、组数、次数、强度与训练日期，确认无误再保存。</p>
+          </div>
+
+          <div class="panel" id="log-parsed" hidden>
+            <div class="panel-head">
+              <h2>确认记录</h2>
+              <span class="chip chip-muted" id="log-confidence"></span>
+            </div>
+            <div class="form-grid">
+              <label>动作<select id="log-exercise"></select></label>
+              <label>重量（公斤）<input type="number" id="log-weight" step="0.5" min="0"></label>
+              <label>组数<input type="number" id="log-sets" min="1"></label>
+              <label>次数<input type="number" id="log-reps" min="1"></label>
+              <label>主观强度（6 至 10）<input type="number" id="log-rpe" min="5" max="10" step="0.5"></label>
+              <label class="inline-check"><input type="checkbox" id="log-completed" checked> 完成计划</label>
+              <label>训练日期<input type="date" id="log-date"></label>
+              <label>本次容量（自动计算）<input type="text" id="log-volume" readonly></label>
+            </div>
+            <button class="btn btn-primary" id="log-save">保存记录</button>
+          </div>
+
+          <div class="panel" id="log-decision" hidden>
+            <div class="panel-head">
+              <h2>下次怎么练</h2>
+              <span class="chip" id="decision-pill"></span>
+            </div>
+            <p class="advice-text" id="decision-reason"></p>
+            <p class="muted" id="decision-next"></p>
+          </div>
+
+          <div class="panel" id="day-panel">
+            <div class="panel-head">
+              <h2 id="day-title">当日训练</h2>
+              <span class="chip chip-muted" id="day-chip"></span>
+            </div>
+            <div class="stat-grid" id="day-stats"></div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>动作</th><th class="num">重量</th><th class="num">组 × 次</th><th class="num">容量</th>
+                </tr>
+              </thead>
+              <tbody id="day-tbody"></tbody>
+            </table>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2>训练记录表</h2>
+              <span class="chip chip-muted" id="log-count"></span>
+            </div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>动作</th><th class="num">重量</th><th class="num">组 × 次</th>
+                  <th class="num">强度</th><th>状态</th><th>日期</th><th class="row-action"></th>
+                </tr>
+              </thead>
+              <tbody id="log-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="panel" id="calendar-panel">
+            <div class="panel-head">
+              <h2>训练日历</h2>
+              <div class="cal-nav">
+                <button class="icon-btn" id="cal-prev" type="button" aria-label="上个月">‹</button>
+                <span class="cal-title" id="cal-title">—</span>
+                <button class="icon-btn" id="cal-next" type="button" aria-label="下个月">›</button>
+              </div>
+            </div>
+            <div class="cal-weekdays">
+              <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+            </div>
+            <div class="cal-grid" id="cal-grid"></div>
+            <p class="fineprint" id="cal-summary">点某一天可以查看当天的训练明细。</p>
+          </div>
+
+          <div class="panel" id="advice-panel">
+            <div class="panel-head">
+              <h2>AI 训练建议</h2>
+              <span class="chip chip-muted" id="advice-source-chip">待生成</span>
+            </div>
+            <p class="muted">依据最近 30 天的训练频率、容量变化与肌群分布，让大模型给出下一步安排。</p>
+            <div class="row-actions">
+              <button class="btn btn-primary" id="advice-btn">让 AI 分析我的训练</button>
+            </div>
+            <div id="advice-result" class="stack"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h2>重量走势</h2></div>
+            <div class="chart" id="log-chart"></div>
+            <p class="fineprint">统计最近记录的重量变化，用于判断渐进超负荷是否在发生。</p>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h2>判定规则</h2></div>
+            <ul class="rules">
+              <li>计划次数全部完成且强度不超过 8，下次加重 2.5 公斤。</li>
+              <li>强度到 9 或没有完成，重量保持不变。</li>
+              <li>同一重量连续两次未完成，减重 10%。</li>
+              <li>自重动作不加重量，改为每组加 2 次。</li>
+            </ul>
+            <p class="fineprint">数值由代码判定，模型只负责解释，所以同样的记录每次得到同样的建议。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 食堂营养 ==================== -->
+    <section class="section" id="section-eat">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">知识库检索 · 组合优化</p>
+          <h1>食堂营养</h1>
+          <p class="page-desc">把食堂菜单当作约束条件：算出今天的蛋白质缺口，再给出到哪个窗口点哪几样。</p>
+        </div>
+        <div class="page-actions">
+          <span class="chip chip-muted">营养数据为估算值</span>
+        </div>
+      </header>
+
+      <div class="grid grid-eat">
+        <div class="col col-wide">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>今日摄入</h2>
+              <span class="chip chip-muted" id="eat-spend"></span>
+            </div>
+            <div class="bars" id="eat-bars"></div>
+            <table class="table">
+              <thead>
+                <tr><th>菜品</th><th class="num">热量</th><th class="num">蛋白质</th><th class="num">价格</th><th></th></tr>
+              </thead>
+              <tbody id="eat-meals"></tbody>
+            </table>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2>补齐方案</h2>
+              <span class="chip chip-muted" id="suggest-price"></span>
+            </div>
+            <div class="row-actions">
+              <button class="btn btn-primary" id="suggest-btn">按缺口生成方案</button>
+            </div>
+            <div id="suggest-result" class="stack"></div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="panel" id="photo-panel">
+            <div class="panel-head">
+              <h2>拍照识别</h2>
+              <span class="chip chip-muted" id="photo-chip">检查中…</span>
+            </div>
+            <p class="muted">拍一张餐盘或菜单，系统认菜并估算份量，热量与蛋白质按菜品库的标准值计算。</p>
+
+            <label class="dropzone dropzone-photo" id="photo-drop">
+              <input type="file" id="photo-file" accept="image/*">
+              <span class="drop-title">拍照或从相册选择</span>
+              <span class="drop-sub">支持餐盘、菜单、窗口标价牌；也可以用系统分享菜单里的图片</span>
+            </label>
+
+            <img id="photo-preview" class="photo-preview" alt="待识别的照片" hidden>
+            <div class="file-row">
+              <span class="muted" id="photo-name">尚未选择照片</span>
+              <button class="btn btn-primary" id="photo-btn" disabled>开始识别</button>
+            </div>
+            <div id="photo-result" class="stack"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h2>菜品库</h2><span class="chip chip-muted">40 道</span></div>
+            <input type="search" id="food-search" placeholder="搜索菜品、窗口或食堂，按 / 可快速定位">
+            <div class="list scroll" id="food-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 体态评估 ==================== -->
+    <section class="section" id="section-posture">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">视觉理解 · 体态评估</p>
+          <h1>体态评估</h1>
+          <p class="page-desc">上传正面、侧面、背面三张全身照，AI 识别头前伸、圆肩、骨盆前倾等体态问题，并生成对应的矫正训练计划。</p>
+        </div>
+        <div class="page-actions">
+          <span class="chip" id="posture-engine-chip">体态识别</span>
+        </div>
+      </header>
+
+      <div class="grid grid-pose">
+        <div class="col">
+          <div class="panel">
+            <div class="panel-head"><h2>上传三张照片</h2></div>
+            <div class="posture-slots">
+              <label class="photo-slot">
+                <input type="file" accept="image/*" data-posture="front">
+                <img class="photo-thumb" data-thumb="front" alt="" hidden>
+                <div class="photo-slot-body">
+                  <strong>正面</strong>
+                  <span>正对镜头，全身入镜</span>
+                </div>
+              </label>
+              <label class="photo-slot">
+                <input type="file" accept="image/*" data-posture="side">
+                <img class="photo-thumb" data-thumb="side" alt="" hidden>
+                <div class="photo-slot-body">
+                  <strong>侧面</strong>
+                  <span>侧身站立，露出耳朵到脚踝</span>
+                </div>
+              </label>
+              <label class="photo-slot">
+                <input type="file" accept="image/*" data-posture="back">
+                <img class="photo-thumb" data-thumb="back" alt="" hidden>
+                <div class="photo-slot-body">
+                  <strong>背面</strong>
+                  <span>背对镜头，全身入镜</span>
+                </div>
+              </label>
+            </div>
+            <div class="file-row">
+              <span class="muted" id="posture-status">尚未选择照片</span>
+              <button class="btn btn-primary" id="posture-start" disabled>开始评估</button>
+            </div>
+            <div class="progress" id="posture-progress" hidden>
+              <div class="progress-head">
+                <span id="posture-progress-text">正在识别体态…</span>
+                <span id="posture-progress-value"></span>
+              </div>
+              <div class="progress-bar"><i id="posture-progress-fill"></i></div>
+            </div>
+            <p class="fineprint">建议穿贴身衣物、光线充足、距离 2 至 3 米拍摄。结果由 AI 生成，仅作参考，不构成医疗诊断。</p>
+          </div>
+
+          <div class="panel" id="posture-result" hidden>
+            <div class="panel-head">
+              <h2>体态评估报告</h2>
+              <span class="chip" id="posture-risk-chip">低风险</span>
+            </div>
+            <div class="risk-row">
+              <div class="risk-ring" id="posture-risk-ring"><div><strong id="posture-risk-score">0</strong><span>风险分</span></div></div>
+              <div class="risk-meta">
+                <div class="muted" id="posture-provider"></div>
+                <div id="posture-issues" class="stack"></div>
+              </div>
+            </div>
+            <div class="angle-block">
+              <div class="block-title">测量角度</div>
+              <div id="posture-angles" class="kv"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="panel" id="posture-plan-panel" hidden>
+            <div class="panel-head">
+              <h2>矫正训练计划</h2>
+              <span class="chip chip-muted" id="posture-rest-days"></span>
+            </div>
+            <div class="plan-tabs" id="posture-plan-tabs"></div>
+            <div id="posture-plan-warnings" class="stack"></div>
+            <div id="posture-plan-exercises" class="stack"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h2>历史评估</h2></div>
+            <div id="posture-history" class="stack"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 我的与计划 ==================== -->
+    <section class="section" id="section-me">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">智能体主动性 · 可解释闭环</p>
+          <h1>我的与计划</h1>
+          <p class="page-desc">身体数据决定热量与蛋白质目标；每次计划调整都会写明原因并留下版本，便于复盘与说明。</p>
+        </div>
+        <div class="page-actions">
+          <span class="chip chip-muted" id="me-goal-chip">目标：增肌</span>
+        </div>
+      </header>
+
+      <div class="grid grid-me">
+        <div class="col">
+          <div class="panel">
+            <div class="panel-head"><h2>身体数据与目标</h2></div>
+            <div class="form-grid">
+              <label>性别<select id="me-gender"><option>男</option><option>女</option></select></label>
+              <label>年龄<input type="number" id="me-age" min="15" max="60"></label>
+              <label>身高（厘米）<input type="number" id="me-height" min="140" max="210"></label>
+              <label>体重（公斤）<input type="number" id="me-weight" min="35" max="150" step="0.5"></label>
+              <label>目标<select id="me-goal"><option>增肌</option><option>减脂</option><option>保持</option></select></label>
+              <label>每周训练天数<input type="number" id="me-days" min="1" max="7"></label>
+              <label>每餐预算（元）<input type="number" id="me-budget" min="5" max="60" step="1"></label>
+            </div>
+            <button class="btn btn-primary" id="me-save">保存并重新计算目标</button>
+            <div class="stat-grid" id="me-targets"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2>主动督导</h2>
+              <span class="chip chip-muted">超过三天未训练会主动介入</span>
+            </div>
+            <div class="row-actions">
+              <button class="btn btn-primary" id="nudge-btn">检查今天是否需要督导</button>
+            </div>
+            <div id="nudge-result" class="stack"></div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>计划变更历史</h2>
+              <span class="chip chip-muted" id="plan-count"></span>
+            </div>
+            <ol class="timeline" id="plan-changes"></ol>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h2>系统状态</h2></div>
+            <div class="kv" id="health"></div>
+          </div>
+
+          <div class="panel" id="llm-panel" hidden>
+            <div class="panel-head">
+              <h2>大模型接入（服务器配置）</h2>
+              <span class="chip chip-muted" id="llm-chip">读取中…</span>
+            </div>
+            <p class="muted">在这里填一次，所有打开这个网站的人都直接用，不需要各自绑定。文字模型与视觉模型可以来自不同平台：例如文字用 DeepSeek、拍照识别用智谱 GLM-4V。</p>
+            <div class="form-grid">
+              <label>平台<select id="llm-provider"></select></label>
+              <label>模型名<input id="llm-model" placeholder="留空使用平台默认"></label>
+              <label class="span-2">API Key
+                <input type="password" id="llm-key" placeholder="粘贴你的 Key，例如 sk-xxxxxxxx" autocomplete="off">
+              </label>
+            </div>
+            <div class="row-actions">
+              <button class="btn btn-primary" id="llm-save">保存并测试</button>
+              <button class="btn btn-ghost" id="llm-test">只测试连接</button>
+            </div>
+            <div id="llm-result" class="stack"></div>
+            <p class="fineprint" id="llm-hint"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<div class="modal" id="result-modal" hidden>
+  <div class="modal-backdrop" id="result-modal-backdrop"></div>
+  <div class="modal-body">
+    <div class="modal-head">
+      <span id="result-modal-title">预览</span>
+      <button class="modal-close" id="result-modal-close" title="关闭（Esc）">×</button>
+    </div>
+    <div class="modal-content">
+      <img id="result-modal-img" alt="结论卡" hidden>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="tutorial-modal" hidden>
+  <div class="modal-backdrop" id="tutorial-modal-backdrop"></div>
+  <div class="modal-body">
+    <div class="modal-head">
+      <span id="tutorial-modal-title">纠正教程</span>
+      <button class="modal-close" id="tutorial-modal-close" title="关闭（Esc）">×</button>
+    </div>
+    <div class="modal-content" id="tutorial-body"></div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

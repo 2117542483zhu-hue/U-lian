@@ -1,0 +1,6 @@
+mediapipe==1.0.1
+opencv-python-headless==5.0.0.93
+numpy==2.5.3
+pillow==12.3.0
+imageio-ffmpeg==0.6.0
+edge-tts==7.2.8

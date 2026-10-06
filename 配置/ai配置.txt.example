@@ -1,0 +1,24 @@
+# U炼ai · 大模型配置（模板）
+# 使用方法：把本文件复制为同目录下的 ai配置.txt，并填入你自己的密钥。
+# ai配置.txt 已被 .gitignore 排除，不会提交到仓库。
+
+provider=zhipu
+
+# 下面各平台的 key 留空表示不使用该平台。
+deepseek_key=在这里填你的 DeepSeek Key
+dashscope_key=
+zhipu_key=在这里填你的智谱 Key
+moonshot_key=
+ark_key=
+
+deepseek_model=deepseek-chat
+dashscope_model=qwen-plus
+zhipu_model=glm-4-flash
+moonshot_model=moonshot-v1-8k
+ark_model=doubao-seed-1-6
+
+# 拍照识别用的视觉模型（DeepSeek 不支持看图，需要另外填一个支持视觉的平台）
+dashscope_vision_model=qwen-vl-plus
+zhipu_vision_model=glm-4v-flash
+moonshot_vision_model=moonshot-v1-8k-vision-preview
+ark_vision_model=doubao-seed-1-6
